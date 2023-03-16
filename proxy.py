@@ -13,6 +13,7 @@ Usage:
 import logging
 
 from mitmproxy import ctx, http
+from proxy_config import REMOTE_HOST, REMOTE_PORT, CDN_PORT, WS_PORT, VOICE_PORT, USE_HTTPS, SCHEME
 
 APP_BRANCH_DOMAINS = ["discord.com", "canary.discord.com", "ptb.discord.com"]
 
@@ -23,17 +24,6 @@ class ChatAppProxy:
         logging.info("loaded!")
 
     def request(self, flow: http.HTTPFlow) -> None:
-        REMOTE_HOST = "localhost"
-        REMOTE_PORT = 3000
-        CDN_PORT = 3001
-        WS_PORT = 3002
-        VOICE_PORT = 3015
-        USE_HTTPS = False
-
-        SCHEME = "http"
-        if USE_HTTPS:
-            SCHEME = "https"
-
         if flow.request.host in APP_DOMAINS:
             if flow.request.host in APP_BRANCH_DOMAINS:
                 if flow.request.path.startswith("/api"):
