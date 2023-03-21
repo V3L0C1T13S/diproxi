@@ -13,11 +13,11 @@ Usage:
 import logging
 
 from mitmproxy import ctx, http
-from proxy_config import REMOTE_HOST, REMOTE_PORT, CDN_PORT, WS_PORT, VOICE_PORT, USE_HTTPS, SCHEME
+from proxy_config import REMOTE_HOST, REMOTE_CDN, REMOTE_GATEWAY, REMOTE_PORT, CDN_PORT, WS_PORT, VOICE_PORT, USE_HTTPS, SCHEME
 
 APP_BRANCH_DOMAINS = ["discord.com", "canary.discord.com", "ptb.discord.com"]
-
-APP_DOMAINS = APP_BRANCH_DOMAINS + ["discordapp.com", "gateway.discord.gg", "cdn.discordapp.com"]
+CDN_DOMAINS = ["cdn.discordapp.com"]
+APP_DOMAINS = APP_BRANCH_DOMAINS + CDN_DOMAINS + ["discordapp.com", "gateway.discord.gg"]
 
 class ChatAppProxy:
     def load(self, loader):
@@ -32,11 +32,11 @@ class ChatAppProxy:
                     flow.request.port = REMOTE_PORT
             elif flow.request.pretty_url.startswith("https://cdn.discordapp.com"):
                 flow.request.scheme = SCHEME
-                flow.request.host = REMOTE_HOST
+                flow.request.host = REMOTE_CDN
                 flow.request.port = CDN_PORT
             elif flow.request.pretty_url.startswith("https://gateway.discord.gg"):
                 flow.request.scheme = SCHEME
-                flow.request.host = REMOTE_HOST
+                flow.request.host = REMOTE_GATEWAY
                 flow.request.port = WS_PORT
     
     def response(self, flow: http.HTTPFlow):
