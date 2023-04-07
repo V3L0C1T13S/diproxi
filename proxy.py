@@ -13,11 +13,14 @@ Usage:
 import logging
 
 from mitmproxy import ctx, http
-from proxy_config import REMOTE_HOST, REMOTE_CDN, REMOTE_GATEWAY, REMOTE_PORT, CDN_PORT, WS_PORT, VOICE_PORT, USE_HTTPS, SCHEME
+from proxy_config import REMOTE_HOST, REMOTE_CDN, REMOTE_GATEWAY, REMOTE_PORT, CDN_PORT, WS_PORT, BLOCK_ESSENTIAL_DOMAINS, SCHEME
 
 APP_BRANCH_DOMAINS = ["discord.com", "canary.discord.com", "ptb.discord.com"]
 CDN_DOMAINS = ["cdn.discordapp.com"]
 APP_DOMAINS = APP_BRANCH_DOMAINS + CDN_DOMAINS + ["discordapp.com", "gateway.discord.gg"]
+
+ESSENTIAL_API_PATHS = ["modules"]
+ESSENTIAL_CDN_PATHS = ["changelogs"]
 
 class ChatAppProxy:
     def load(self, loader):
@@ -27,10 +30,14 @@ class ChatAppProxy:
         if flow.request.host in APP_DOMAINS:
             if flow.request.host in APP_BRANCH_DOMAINS:
                 if flow.request.path.startswith("/api"):
+                    if flow.request.path_components[1] in ESSENTIAL_API_PATHS and not BLOCK_ESSENTIAL_DOMAINS:
+                        return
                     flow.request.scheme = SCHEME
                     flow.request.host = REMOTE_HOST
                     flow.request.port = REMOTE_PORT
             elif flow.request.pretty_url.startswith("https://cdn.discordapp.com"):
+                if not BLOCK_ESSENTIAL_DOMAINS and flow.request.path_components[0] in ESSENTIAL_CDN_PATHS:
+                    return
                 flow.request.scheme = SCHEME
                 flow.request.host = REMOTE_CDN
                 flow.request.port = CDN_PORT
